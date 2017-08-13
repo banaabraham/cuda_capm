@@ -17,7 +17,7 @@ import pycuda.autoinit
 dow=list(input("Input stock ticker(s): ").split(" "))
 
 SP500 = pd.read_csv("GSPC.csv")
-sp = list(SP500['Close'][:250])
+sp = list(SP500['Close'][:250][::-1)
 sp_new = np.array(sp, dtype=np.float32)
 sp_gpu = gpuarray.to_gpu(sp_new.astype(np.float32))
 sp_gpu_avg = sum(sp_gpu)/len(sp_gpu)
