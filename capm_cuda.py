@@ -14,16 +14,17 @@ import pycuda.autoinit
 
 
 #dow=['goog','aapl','ge']
-dow=list(input("Input stock ticker(s): ").split(" "))
+dow=list(input("Input stock ticker(s): ").strip().split(" "))
 
 SP500 = pd.read_csv("GSPC.csv")
-sp = list(SP500['Close'][:250][::-1)
+sp = list(SP500['Close'][:250][::-1])
 sp_new = np.array(sp, dtype=np.float32)
 sp_gpu = gpuarray.to_gpu(sp_new.astype(np.float32))
 sp_gpu_avg = sum(sp_gpu)/len(sp_gpu)
 X = [(sp_gpu[i])**2 for i in range(len(sp_gpu))]
 sp_gpu_var = (sum(X)-(sp_gpu_avg**2))/len(sp_gpu)
 sp_return = (sp_gpu[0]-sp_gpu[-1])/sp_gpu[-1]
+
 
 rate = float(input("Input risk free rate (%): "))
 
@@ -53,12 +54,13 @@ def cuda_capm(arr):
     X_new = np.array(arr, dtype=np.float32)
     arrc = gpuarray.to_gpu(X_new.astype(np.float32))
     #mth_return = [((arrc[i]-arrc[i-30])/arrc[i-30]).get() for i in range(len(arrc)-1,0,-30)]
+    rtrn = ((arrc[0]-arrc[-1])/arr[-1])*100
     average = sum(arrc)/len(arrc)
     W = [(arrc[i]-average)*(sp_gpu[i]-sp_gpu_avg) for i in range(len(arrc))]
     cov = sum(W)/(len(arrc)-1)
     beta = cov/sp_gpu_var
     capm = rate + (sp_return-rate)*beta
-    return capm.get()
+    return capm.get(),rtrn.get()
 
 hasil  = []
 for i in stock_dict.values():
@@ -66,4 +68,8 @@ for i in stock_dict.values():
 print ("CAPM return: \n")
 
 for i in range(len(dow)):
-    print("%s : %.5f%%" %(dow[i],hasil[i]))    
+    print("%s : %.5f%%" %(dow[i],hasil[i][0]))
+    if hasil[i][0]<hasil[i][1]:
+        print("exceed expectation, actual return %.3f%%" %(hasil[i][1]))
+    else:
+        print("loser actual return %.3f%%" %(hasil[i][1]))
