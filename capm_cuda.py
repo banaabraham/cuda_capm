@@ -13,7 +13,8 @@ import pycuda.driver as cuda
 import pycuda.autoinit
 
 
-dow=['goog','aapl','ge']
+#dow=['goog','aapl','ge']
+dow=list(input("Input stock ticker(s): ").split(" "))
 
 SP500 = pd.read_csv("GSPC.csv")
 sp = list(SP500['Close'][:250])
@@ -66,8 +67,3 @@ print ("CAPM return: \n")
 
 for i in range(len(dow)):
     print("%s : %.5f%%" %(dow[i],hasil[i]))    
-
-
-   
-    
-    
